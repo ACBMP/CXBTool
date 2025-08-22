@@ -1,6 +1,6 @@
 # CXB Tool
 
-This is a simple CLI program to edit the CXB file for an ACB RDV server.
+This is a simple CLI program to edit the CXB file for an ACB RDV server. Thanks to Kamzik123 for the help reversing the CXB format.
 
 ## Usage
 
@@ -31,3 +31,4 @@ For cross-compiling to Windows:
 meson setup build-windows --cross-file=mingw-w64-x86_64.txt --default-library=static --buildtype=release --reconfigure
 ninja -C build-windows
 ```
+
