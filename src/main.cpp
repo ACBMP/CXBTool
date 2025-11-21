@@ -7,19 +7,6 @@
 
 namespace fs = std::filesystem;
 
-// required XMLs
-const std::set<std::string> REQUIRED_FILES = {
-    "abilitymanagermulti", "communityinfo", "custommanagermulti",
-    "gamemodemanagermulti", "gamemodeparams_advteamwanted", "gamemodeparams_advwanted",
-    "gamemodeparams_assassinate", "gamemodeparams_catsmice", "gamemodeparams_free",
-    "gamemodeparams_pacman", "gamemodeparams_teamvip", "gamemodeparams_teamwanted",
-    "gamemodeparams_vip", "gamemodeparams_wanted_2", "gamemode_advteamwanted",
-    "gamemode_advwanted", "gamemode_assassinate", "gamemode_catsmice", "gamemode_free",
-    "gamemode_pacman", "gamemode_teamvip", "gamemode_teamwanted", "gamemode_vip",
-    "gamemode_wanted_2", "globalparams", "levelxpmanager", "mapmanagermulti",
-    "scorebonusmanager"
-};
-
 void exportCXB(const std::string& input, const std::string& outputDir) {
     auto xmls = ExtractCXB(input);
     if (xmls.empty()) {
@@ -55,20 +42,6 @@ void convertToCXB(const std::string& inputDir, const std::string& outputFile) {
             std::string content((std::istreambuf_iterator<char>(in)), {});
             xmlMap[baseName] = content;
         }
-    }
-
-    // validation
-    std::set<std::string> found;
-    for (const auto& [name, _] : xmlMap) found.insert(name);
-
-    if (found != REQUIRED_FILES) {
-        std::cerr << "Invalid XML set in folder: " << inputDir << "\n";
-        std::cerr << "Expected exactly these files:\n";
-        for (auto& f : REQUIRED_FILES) std::cerr << "  " << f << ".xml\n";
-
-        std::cerr << "Found instead:\n";
-        for (auto& f : found) std::cerr << "  " << f << ".xml\n";
-        return;
     }
 
     // parse into tinyxml2 docs
