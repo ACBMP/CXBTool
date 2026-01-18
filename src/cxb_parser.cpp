@@ -170,6 +170,18 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
     std::vector<uint8_t> fileInfos;
     std::vector<uint8_t> fileData;
 
+    uint8_t nameFieldSize = 24;
+
+    for (const auto& file : files) {
+        std::string baseName = file.name.substr(0, file.name.find('.'));
+        std::cout << baseName << "\n";
+        std::cout << (int)nameFieldSize << "\n";
+    
+        while (baseName.size() >= nameFieldSize) {
+            nameFieldSize += 8;
+        }
+    }
+
     for (const auto& file : files) {
         // Serialize XML
         tinyxml2::XMLPrinter printer;
@@ -215,7 +227,7 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
         // Build file info
         std::string baseName = file.name.substr(0, file.name.find('.'));
         std::vector<uint8_t> nameBuf(baseName.begin(), baseName.end());
-        nameBuf.resize(32, 0);
+        nameBuf.resize(nameFieldSize, 0);
 
         std::ostringstream sizeStr;
         sizeStr << header.size();
