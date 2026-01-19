@@ -7,6 +7,7 @@
 #include <iostream>
 #include <lzo/lzo2a.h>
 #include <cstdint>
+#include <pugixml.hpp>
 
 
 constexpr uint64_t MAGIC = 0x1004FA9957FBAA33;
@@ -179,10 +180,19 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
     }
 
     for (const auto& file : files) {
+        pugi::xml_document doc;
         std::string xmlStr = file.rawXml;
-        xmlStr.push_back('\0');
+        doc.load_string(xmlStr.c_str());
+        
+        // remove formatting
+        std::ostringstream oss;
+        doc.save(oss, "", pugi::format_raw);
+        
+        std::string minified = oss.str();
 
-        std::vector<uint8_t> xmlBytes(xmlStr.begin(), xmlStr.end());
+        minified.push_back('\0');
+
+        std::vector<uint8_t> xmlBytes(minified.begin(), minified.end());
         uint32_t uncompressedSize = xmlBytes.size();
 
         std::vector<uint8_t> blocks;

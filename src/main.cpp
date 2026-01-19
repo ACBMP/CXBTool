@@ -4,6 +4,7 @@
 #include <iostream>
 #include <set>
 #include <stdint.h>
+#include <pugixml.hpp>
 
 namespace fs = std::filesystem;
 
@@ -16,13 +17,20 @@ void exportCXB(const std::string& input, const std::string& outputDir) {
 
     fs::create_directories(outputDir);
     for (const auto& [filename, content] : xmls) {
+        pugi::xml_document doc;
+        pugi::xml_parse_result result = doc.load_string(content.c_str());
+        if (!result) {
+            std::cerr << "Failed to parse XML for " << filename
+                      << ": " << result.description() << "\n";
+            continue;
+        }
         std::string path = (fs::path(outputDir) / filename).string();
         std::ofstream out(path);
         if (!out) {
             std::cerr << "Failed to write " << path << "\n";
             continue;
         }
-        out << content;
+        doc.save(out, "    ", pugi::format_default | pugi::format_indent);
         std::cout << "Wrote " << path << "\n";
     }
 }
