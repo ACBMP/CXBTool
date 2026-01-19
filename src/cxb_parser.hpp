@@ -1,12 +1,12 @@
 #pragma once
 #include <string>
 #include <map>
-#include "tinyxml2.h"
 #include <vector>
+#include <stdint.h>
 
 struct CXBFile {
     std::string name;
-    tinyxml2::XMLDocument* doc;
+    std::string rawXml;
 };
 
 
