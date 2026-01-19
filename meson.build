@@ -9,19 +9,16 @@ project('CXBTool', 'cpp',
 )
 
 lzo_dep = dependency('lzo2', fallback: ['lzo2', 'lzo2_dep'], static: true)
-tinyxml2_dep = dependency('tinyxml2', fallback: ['tinyxml2', 'tinyxml2_dep'], static: true)
 
 srcs = files(
   'src/main.cpp',
   'src/cxb_parser.cpp',
-  'src/xml_loader.cpp',
 )
 
 executable('CXBTool',
   srcs,
   include_directories: include_directories('.'),
   dependencies: [
-    tinyxml2_dep,
     lzo_dep,
   ],
   gui_app: false,

@@ -1,9 +1,9 @@
 #include "cxb_parser.hpp"
-#include "xml_loader.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <stdint.h>
 
 namespace fs = std::filesystem;
 
@@ -30,7 +30,6 @@ void exportCXB(const std::string& input, const std::string& outputDir) {
 void convertToCXB(const std::string& inputDir, const std::string& outputFile) {
     std::map<std::string, std::string> xmlMap;
 
-    // collect all XMLs in folder
     for (const auto& entry : fs::directory_iterator(inputDir)) {
         if (entry.is_regular_file() && entry.path().extension() == ".xml") {
             std::string baseName = entry.path().stem().string();
@@ -44,17 +43,16 @@ void convertToCXB(const std::string& inputDir, const std::string& outputFile) {
         }
     }
 
-    auto docs = LoadXMLFromMemory(xmlMap);
-
     std::vector<CXBFile> files;
-    for (auto& [name, doc] : docs) {
-        CXBFile f{ name + ".xml", doc.get() };
-        files.push_back(f);
+    for (auto& [baseName, content] : xmlMap) {
+        CXBFile f;
+        f.name = baseName + ".xml";
+        f.rawXml = content;
+        files.push_back(std::move(f));
     }
 
     auto buffer = ConvertToCXB(files);
 
-    // write output
     std::ofstream out(outputFile, std::ios::binary);
     if (!out) {
         std::cerr << "Failed to open output file " << outputFile << "\n";

@@ -7,7 +7,6 @@
 #include <iostream>
 #include <lzo/lzo2a.h>
 #include <cstdint>
-#include "tinyxml2.h"
 
 
 constexpr uint64_t MAGIC = 0x1004FA9957FBAA33;
@@ -180,9 +179,7 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
     }
 
     for (const auto& file : files) {
-        tinyxml2::XMLPrinter printer;
-        file.doc->Print(&printer);
-        std::string xmlStr = printer.CStr();
+        std::string xmlStr = file.rawXml;
         xmlStr.push_back('\0');
 
         std::vector<uint8_t> xmlBytes(xmlStr.begin(), xmlStr.end());
