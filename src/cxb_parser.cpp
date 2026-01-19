@@ -174,8 +174,6 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
 
     for (const auto& file : files) {
         std::string baseName = file.name.substr(0, file.name.find('.'));
-        std::cout << baseName << "\n";
-        std::cout << (int)nameFieldSize << "\n";
     
         while (baseName.size() >= nameFieldSize) {
             nameFieldSize += 8;
@@ -183,7 +181,6 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
     }
 
     for (const auto& file : files) {
-        // Serialize XML
         tinyxml2::XMLPrinter printer;
         file.doc->Print(&printer);
         std::string xmlStr = printer.CStr();
@@ -192,7 +189,6 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
         std::vector<uint8_t> xmlBytes(xmlStr.begin(), xmlStr.end());
         uint32_t uncompressedSize = xmlBytes.size();
 
-        // Chunk and compress
         std::vector<uint8_t> blocks;
         for (size_t i = 0; i < xmlBytes.size(); i += DECOMP_BUFFER_SIZE) {
             std::vector<uint8_t> chunk(xmlBytes.begin() + i, xmlBytes.begin() + std::min(i + DECOMP_BUFFER_SIZE, xmlBytes.size()));
@@ -200,7 +196,7 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
 
             uint32_t de_size = chunk.size();
             uint32_t en_size = comp.size();
-            uint32_t checksum = lzo_adler32(0, comp.data(), comp.size());
+            uint32_t checksum = adler32(0, comp.data(), comp.size());
 
             blocks.push_back(1);  // is_compressed
             for (uint32_t val : {en_size, de_size, checksum}) {
@@ -209,13 +205,12 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
             blocks.insert(blocks.end(), comp.begin(), comp.end());
         }
 
-        // Build file header
         std::vector<uint8_t> header;
         for (int i = 0; i < 4; ++i) header.push_back((uncompressedSize >> (8 * i)) & 0xFF);
         for (int i = 0; i < 8; ++i) header.push_back((MAGIC >> (8 * i)) & 0xFF);
         header.push_back(VERSION & 0xFF);
-        header.push_back((ALGO >> 8) & 0xFF);
-        header.push_back(ALGO & 0xFF);
+        header.push_back((VERSION >> 8) & 0xFF);
+        header.push_back(ALGO);
         header.push_back(DECOMP_BUFFER_SIZE & 0xFF);
         header.push_back((DECOMP_BUFFER_SIZE >> 8) & 0xFF);
         header.push_back(COMP_BUFFER_SIZE & 0xFF);
@@ -224,7 +219,6 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
         header.insert(header.end(), blocks.begin(), blocks.end());
         fileData.insert(fileData.end(), header.begin(), header.end());
 
-        // Build file info
         std::string baseName = file.name.substr(0, file.name.find('.'));
         std::vector<uint8_t> nameBuf(baseName.begin(), baseName.end());
         nameBuf.resize(nameFieldSize, 0);
@@ -239,11 +233,9 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
         fileInfos.insert(fileInfos.end(), sizeBytes.begin(), sizeBytes.end());
     }
 
-    // Final padding
     fileInfos.push_back(0x30);
-    fileInfos.resize(fileInfos.size() + 39, 0);
+    fileInfos.resize(fileInfos.size() + nameFieldSize + 7, 0);
 
-    // Combine all
     std::vector<uint8_t> finalBuffer;
     finalBuffer.insert(finalBuffer.end(), fileInfos.begin(), fileInfos.end());
     finalBuffer.insert(finalBuffer.end(), fileData.begin(), fileData.end());

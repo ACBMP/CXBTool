@@ -44,10 +44,8 @@ void convertToCXB(const std::string& inputDir, const std::string& outputFile) {
         }
     }
 
-    // parse into tinyxml2 docs
     auto docs = LoadXMLFromMemory(xmlMap);
 
-    // build CXBFile vector
     std::vector<CXBFile> files;
     for (auto& [name, doc] : docs) {
         CXBFile f{ name + ".xml", doc.get() };
