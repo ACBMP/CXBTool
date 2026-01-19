@@ -5,7 +5,6 @@
 #include <vector>
 #include <cstring>
 #include <iostream>
-#include <zlib.h>
 #include <lzo/lzo2a.h>
 #include <cstdint>
 #include "tinyxml2.h"
@@ -121,7 +120,7 @@ std::map<std::string, std::string> ExtractCXB(const std::string& path) {
                 uint32_t checksum = readInt(4);
                 std::vector<uint8_t> comp_data = read(en_size);
 
-                if (adler32(0, comp_data.data(), en_size) != checksum) {
+                if (lzo_adler32(0, comp_data.data(), en_size) != checksum) {
                     std::cerr << "Checksum mismatch in segment " << segments[i].first << std::endl;
                 }
 
@@ -196,7 +195,7 @@ std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
 
             uint32_t de_size = chunk.size();
             uint32_t en_size = comp.size();
-            uint32_t checksum = adler32(0, comp.data(), comp.size());
+            uint32_t checksum = lzo_adler32(0, comp.data(), comp.size());
 
             blocks.push_back(1);  // is_compressed
             for (uint32_t val : {en_size, de_size, checksum}) {

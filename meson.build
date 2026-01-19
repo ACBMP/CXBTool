@@ -8,7 +8,6 @@ project('CXBTool', 'cpp',
   ]
 )
 
-zlib_dep = dependency('zlib', fallback: ['zlib', 'zlib_dep'], static: true)
 lzo_dep = dependency('lzo2', fallback: ['lzo2', 'lzo2_dep'], static: true)
 tinyxml2_dep = dependency('tinyxml2', fallback: ['tinyxml2', 'tinyxml2_dep'], static: true)
 
@@ -22,7 +21,6 @@ executable('CXBTool',
   srcs,
   include_directories: include_directories('.'),
   dependencies: [
-    zlib_dep,
     tinyxml2_dep,
     lzo_dep,
   ],
