@@ -9,6 +9,7 @@ project('CXBTool', 'cpp',
 )
 
 lzo_dep = dependency('lzo2', fallback: ['lzo2', 'lzo2_dep'], static: true)
+pugixml_dep = dependency('pugixml', fallback: ['pugixml', 'pugixml_dep'], static: true)
 
 srcs = files(
   'src/main.cpp',
@@ -20,6 +21,7 @@ executable('CXBTool',
   include_directories: include_directories('.'),
   dependencies: [
     lzo_dep,
+    pugixml_dep,
   ],
   gui_app: false,
   link_args: [

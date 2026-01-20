@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <stdint.h>
+#include <pugixml.hpp>
 
 struct CXBFile {
     std::string name;
