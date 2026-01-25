@@ -1,7 +1,7 @@
 project('CXBTool', 'cpp',
   version: '0.1',
   default_options: [
-    'cpp_std=c++17',
+    'cpp_std=c++20',
     'b_lto=true',             # optional: link-time optimization
     'b_staticpic=true',       # make static libraries PIC
     'b_ndebug=if-release'     # disable asserts in release
