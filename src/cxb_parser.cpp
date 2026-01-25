@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <pugixml.hpp>
 #include <filesystem>
-#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
