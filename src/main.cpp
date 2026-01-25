@@ -96,7 +96,7 @@ void convertToCXB(const std::string& inputDir, const std::string& outputFile, si
 
             std::ostringstream oss;
             oss << stem << "_" << static_cast<char>('a' + i) << ext;
-            std::string chunkName = parentDir / oss.str();
+            std::string chunkName = (parentDir / oss.str()).string();
 
             std::ofstream out(chunkName, std::ios::binary);
             if (!out) {
