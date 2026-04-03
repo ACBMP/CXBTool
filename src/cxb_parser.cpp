@@ -8,7 +8,10 @@
 #include <lzo/lzo2a.h>
 #include <cstdint>
 #include <pugixml.hpp>
-
+#include <filesystem>
+#include <vector>
+#include <algorithm>
+#include <stdexcept>
 
 constexpr uint64_t MAGIC = 0x1004FA9957FBAA33;
 constexpr uint16_t VERSION = 1;
@@ -16,21 +19,62 @@ constexpr uint8_t ALGO = 2;
 constexpr uint16_t DECOMP_BUFFER_SIZE = 32768;
 constexpr uint16_t COMP_BUFFER_SIZE = 0;
 
+namespace fs = std::filesystem;
+
+std::vector<uint8_t> LoadChunkedCXB(const std::string& pattern) {
+    std::vector<fs::path> files;
+
+    fs::path dir = fs::path(pattern).parent_path();
+    std::string prefix = fs::path(pattern).stem().string();
+
+    for (auto& entry : fs::directory_iterator(dir.empty() ? "." : dir)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".cxb") {
+            std::string stem = entry.path().stem().string();
+            if (stem.find(prefix) == 0) {
+                files.push_back(entry.path());
+            }
+        }
+    }
+
+    if (files.empty()) {
+        throw std::runtime_error("\nNo CXB files matched pattern: " + pattern);
+    }
+
+    std::sort(files.begin(), files.end());
+
+    std::vector<uint8_t> combined;
+    for (auto& file : files) {
+        std::ifstream in(file, std::ios::binary);
+        if (!in) throw std::runtime_error("\nFailed to open CXB file: " + file.string());
+
+        std::vector<uint8_t> buf((std::istreambuf_iterator<char>(in)), {});
+        if (buf.size() >= CXB_CHUNK_MARKER.size()) {
+            if (std::equal(CXB_CHUNK_MARKER.rbegin(), CXB_CHUNK_MARKER.rend(), buf.rbegin())) {
+                buf.resize(buf.size() - CXB_CHUNK_MARKER.size());
+            }
+        }
+        combined.insert(combined.end(), buf.begin(), buf.end());
+    }
+
+    return combined;
+}
+
+
 std::map<std::string, std::string> ExtractCXB(const std::string& path) {
-    std::cout << "Loading XML";
+    std::cout << "Loading XML\n";
     std::map<std::string, std::string> extractedXMLs;
     if (lzo_init() != LZO_E_OK) {
         std::cerr << "LZO initialization failed." << std::endl;
         return extractedXMLs;
     }
 
-    std::ifstream file(path, std::ios::binary);
-    if (!file) {
-        std::cerr << "Failed to open CXB file: " << path << std::endl;
+    std::vector<uint8_t> data;
+    try {
+        data = LoadChunkedCXB(path);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
         return extractedXMLs;
     }
-
-    std::vector<uint8_t> data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
     const std::vector<uint8_t> magic_bytes(reinterpret_cast<const uint8_t*>(&MAGIC),
                                            reinterpret_cast<const uint8_t*>(&MAGIC) + sizeof(MAGIC));
@@ -46,7 +90,6 @@ std::map<std::string, std::string> ExtractCXB(const std::string& path) {
         std::cerr << "No magic number found in CXB file." << std::endl;
         return extractedXMLs;
     }
-
 
     // Extract segment names and sizes from pre-magic data
     std::string decoded;
@@ -163,21 +206,11 @@ std::vector<uint8_t> CompressLZO(const std::vector<uint8_t>& input) {
     return output;
 }
 
-std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files) {
+std::vector<uint8_t> ConvertToCXB(const std::vector<CXBFile>& files, uint8_t nameFieldSize) {
     if (lzo_init() != LZO_E_OK) throw std::runtime_error("LZO init failed");
 
     std::vector<uint8_t> fileInfos;
     std::vector<uint8_t> fileData;
-
-    uint8_t nameFieldSize = 24;
-
-    for (const auto& file : files) {
-        std::string baseName = file.name.substr(0, file.name.find('.'));
-    
-        while (baseName.size() >= nameFieldSize) {
-            nameFieldSize += 8;
-        }
-    }
 
     for (const auto& file : files) {
         pugi::xml_document doc;
