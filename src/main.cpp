@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     else if (cmd == "convert") {
         if (remaining != 2) {
             std::cerr << "Usage: " << argv[0]
-                      << " convert [-c|--chunk-size <KB>] <input_folder> <output.cxb>\n";
+                      << " convert [-c|--chunk-size <KB>] [-n|--name-field-size <bytes>] <input_folder> <output.cxb>\n";
             return 1;
         }
 
