@@ -18,6 +18,23 @@ CXBTool convert xml_folder gamesettings_c1380_d873_s6285.cxb
 
 You can then place the CXB file in the folder with your ACB RDV server and your updated CXB will be sent to clients upon login.
 
+### ACR, AC3, AC4
+
+The later AC games use a longer name field size in the CXB's header.
+To set this when converting back to a CXB:
+
+```
+CXBTool convert xml_folder gamesettings_c1380_d873_s6285.cxb -n 40
+```
+
+### Chunking (AC4)
+
+AC4 seems to want its CXB chunked in 32 KB chunks:
+
+```
+CXBTool convert xml_folder gamesettings_c1380_d873_s6285.cxb -n 40 -c 32
+```
+
 ## Compilation
 
 ```
